@@ -566,13 +566,10 @@ fn build_chain_subtable_for_chunk(chunk: &[(u16, &Vec<u16>)]) -> ChainedSequence
     let mut input_class_items = Vec::new();
     let mut backtrack_class_items = Vec::new();
     let mut rule_sets = vec![None];
-    let mut next_input_class = 1u16;
     let mut next_backtrack_class = 1u16;
 
-    for (origin_gid, alts) in chunk {
-        let input_class = next_input_class;
-        next_input_class += 1;
-        input_class_items.push((GlyphId16::new(*origin_gid), input_class));
+    for (next_input_class, (origin_gid, alts)) in (1u16..).zip(chunk.iter()) {
+        input_class_items.push((GlyphId16::new(*origin_gid), next_input_class));
 
         let origin_backtrack_class = next_backtrack_class;
         next_backtrack_class += 1;
