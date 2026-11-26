@@ -36,9 +36,19 @@ jitter bake my-font.otf --output my-font-jittered.ttf
 
 ## Installation
 
+```bash
+go install github.com/kako-jun/jitter@latest
 ```
-cargo install jitter
+
+Or build from source:
+
+```bash
+git clone https://github.com/kako-jun/jitter
+cd jitter
+go build -o jitter .
 ```
+
+Requires Go 1.26 or newer.
 
 ## Usage
 
@@ -60,6 +70,15 @@ jitter bake <INPUT> [--output <FILE>] [--alternates <N>] [--intensity <0.0-1.0>]
 
 - **SVG**: Vector output, scalable, editable.
 - **PNG**: Rasterized output with transparent background (8-bit RGBA). Chosen automatically when the `--output` path ends in `.png`.
+
+## Development
+
+```bash
+go build
+go test ./...
+gofmt -l .
+go vet ./...
+```
 
 ## Roadmap
 

@@ -1,7 +1,12 @@
-debug/
-target/
-**/*.rs.bk
-*.pdb
+# Go build output
+/jitter
+/jitter.exe
+*.test
+*.out
+/dist/
+/coverage.*
+
+# Editor / agent settings
 .claude/settings.local.json
 .serena/
 .mcp.json

@@ -28,7 +28,7 @@ On top of the per-glyph rigid transform and contour offset, every bezier control
 
 The `intensity` parameter (0.0 to 1.0) controls how much variation is applied. At 0.0, output is identical to the original font. At 1.0, maximum variation is applied.
 
-An optional `--seed <u64>` parameter makes output reproducible: the same text, font, intensity, and seed always produce identical SVG. Omitting `--seed` uses a non-deterministic RNG (previous behavior).
+An optional `--seed <u64>` parameter makes output reproducible: the same text, font, intensity, and seed always produce identical output. Omitting `--seed` uses a non-deterministic RNG (previous behavior).
 
 ### bake mode
 
@@ -51,31 +51,39 @@ jitter's key advantage is that it works with any existing font and requires zero
 ## Architecture
 
 ```
-CLI (clap)
+CLI (pflag)
 ├── render: text + font -> SVG or PNG (by --output extension)
-│   ├── font.rs — Font loading & glyph outline extraction (skrifa)
-│   ├── jitter.rs — Per-character random transforms (rotation, scale, offset)
-│   ├── svg.rs — SVG output (font coords → SVG coords, path generation)
-│   └── png.rs — PNG output (tiny-skia rasterizer, transparent background)
+│   ├── font.go — Font loading & glyph outline extraction (go-text/typesetting)
+│   ├── jitter.go — Per-character random transforms (rotation, scale, shear, offset)
+│   ├── layout.go — Canvas metrics and font-space → page-space transform
+│   ├── svg.go — SVG output (path generation)
+│   └── png.go — PNG output (x/image/vector rasterizer, transparent background)
 └── bake: TTF/OTF -> TTF (`calt` feature)
-    └── bake.rs
-        ├── Outline extraction via skrifa (TTF quad or OTF cubic)
-        ├── Cubic→quadratic conversion via kurbo::CubicBez::to_quads (0.5 font units)
-        ├── Glyph duplication via jitter::apply_jitter + kurbo::BezPath
-        ├── glyf/loca rebuild with write-fonts GlyfLocaBuilder
-        ├── maxp / hhea / hmtx update (num_glyphs += alternates)
-        ├── GSUB: calt feature + ChainContextSubst + SingleSubstFormat2
+    └── bake.go
+        ├── Outline extraction via go-text/typesetting (TTF quad or OTF cubic)
+        ├── Cubic→quadratic conversion in glyf.go (recursive split, 0.5 font units)
+        ├── Glyph duplication via jitter.applyJitterOne
+        ├── glyf/loca rebuild in glyf.go (simple glyphs, packed flags/deltas)
+        ├── maxp / hhea / hmtx / head update in sfnt.go (numGlyphs += alternates)
+        ├── GSUB in gsub.go: calt feature + Extension + ChainContextSubst + SingleSubst
         ├── post downgraded to format 3.0 (no glyph names, count-consistent)
-        └── Pass-through copy of cmap, name, OS/2, head via FontBuilder
+        └── Pass-through copy of cmap, name, OS/2, GPOS, etc.; unsupported
+            per-glyph/variable/CFF tables are dropped
 ```
+
+The SFNT container is written by `sfnt.go` rather than a general font library, so
+table alignment, per-table checksums, and `head.checkSumAdjustment` are all set
+explicitly. GSUB lookups use OpenType extension lookups (type 7) so large fonts
+keep every subtable offset within 16 bits.
 
 ### bake mode limitations
 
 - Input: TTF or OTF (CFF/CFF2 accepted; cubic outlines are converted to quadratic).
 - Output: always TTF (glyf table).
 - `.notdef` (gid 0) is preserved unchanged and excluded from alternates.
-- Composite glyphs are consumed via skrifa's pen and re-emitted as flat simple
-  glyphs in the output (structure flattened, visual appearance preserved).
+- Composite glyphs are consumed via the outline pen and re-emitted as flat
+  simple glyphs in the output (structure flattened, visual appearance
+  preserved).
 - GSUB emits a `calt` feature under script=DFLT, langsys=default.
   Consecutive identical glyphs cycle through their alternates.
 
