@@ -1,4 +1,4 @@
-module github.com/kako-jun/jitter
+module github.com/Farid2469100/jitter
 
 go 1.26.6
 

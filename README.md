@@ -1,8 +1,10 @@
-# jitter
+# jitter (Go)
 
 Add natural handwriting-like variation to digital text.
 
 [English](README.md) | [Español](README.es.md)
+
+> **Go version**: This is a fork of [kako-jun/jitter](https://github.com/kako-jun/jitter) reimplemented in Go. The original Rust implementation is preserved in the [`rust` branch](https://github.com/Farid2469100/jitter/tree/rust) and in the Git history.
 
 ## Why
 
@@ -39,13 +41,13 @@ jitter bake my-font.otf --output my-font-jittered.ttf
 ## Installation
 
 ```bash
-go install github.com/kako-jun/jitter@latest
+go install github.com/Farid2469100/jitter@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/kako-jun/jitter
+git clone https://github.com/Farid2469100/jitter
 cd jitter
 go build -o jitter .
 ```
