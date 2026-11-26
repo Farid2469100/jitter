@@ -2,6 +2,8 @@
 
 Add natural handwriting-like variation to digital text.
 
+[English](README.md) | [Español](README.es.md)
+
 ## Why
 
 Digital fonts produce identical glyphs every time the same character appears. Real handwriting never does — each letter has subtle differences in size, angle, position, and weight. jitter brings that organic variation back to digital text.
